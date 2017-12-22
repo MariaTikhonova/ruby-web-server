@@ -1,5 +1,6 @@
 require 'socket'
 require 'uri'
+require 'net/http'
 
 WEB_ROOT = './public'
 
@@ -41,6 +42,7 @@ path = File.join(path, 'index.html') if File.directory?(path)
 if File.exist?(path) && !File.directory?(path)
    File.open(path, "rb") do |file|
      socket.print "HTTP/1.1 200 OK\r\n" +
+                  "HEAD / HTTP/1.1" +
                   "Content-Type: #{content_type(file)}\r\n" +
                   "Content-Length: #{file.size}\r\n" +
                   "Connection: close\r\n"
@@ -59,7 +61,28 @@ else
  socket.print "\r\n"
 
  socket.print message
+  socket.close
 end
- socket.close
+
+def head_response 
+server = TCPSocket.open('localhost',2345)
+server.puts "HEAD / HTTP/1.1"
+server.puts "Host: localhost"
+server1.puts
+head = server1.gets
+server1.close
+status = head.scan(/\d\d\d/).first.to_i
+Net::HTTP.start('localhost', 2345){|http| response = http.head(path)
+ puts response
+  }
+end
+
+def error_500
+  if requested_file false
+    message = "500 External Error\n"
+  raise "HTTP/1.1 500 External Error"
+  end
+end
+
 end
 
