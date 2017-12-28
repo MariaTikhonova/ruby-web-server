@@ -1,6 +1,8 @@
 require 'socket'
 require 'uri'
 require 'net/http'
+require 'rack'
+
 
 WEB_ROOT = './public'
 
@@ -31,7 +33,9 @@ def requested_file(request_line)
  File.join(WEB_ROOT, *clean)
 end
 
+
 server = TCPServer.new('localhost', 2345)
+
 
 loop do
 socket = server.accept
@@ -83,6 +87,23 @@ def error_500
   raise "HTTP/1.1 500 External Error"
   end
 end
+
+def rackapp_call
+
+app = Proc.new do |env|
+    ['200', {'Content-Type' => 'text/html'}, ['rack app.']]
+end
+ 
+Rack::Handler::WEBrick.run app
+server = TCPServer.new('localhost', 2345)
+status,headers,body = app.call({
+  'REQUEST_METHOD' => requested_file,
+  'PATH_INFO' => content_type,
+  'QUERY_STRING'=> head_response 
+  })
+  
+end
+
 
 end
 
